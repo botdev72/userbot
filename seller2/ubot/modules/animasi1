@@ -1,0 +1,42 @@
+
+
+__MODULE__ = "Animasi"
+__HELP__ = """
+Bantuan Untuk Animasi
+
+• Perintah:  <code>{0}babi or {0}ajg</code></code>
+• Penjelasan:  Coba sendiri.
+
+• Perintah:  <code>{0}ange or {0}lipkol</code>
+• Penjelasan:  Coba sendiri.
+
+• Perintah:  <code>{0}nakal or {0}spongebob</code>
+• Penjelasan:  Coba sendiri.
+
+• Perintah: <code>{0}syg or {0}loveyou</code>
+• Penjelasan: Coba sendiri.
+
+• Perintah:  <code>{0}hug or {0}nah</code>
+• Penjelasan:  Coba sendiri.
+
+• Perintah:  <code>{0}kntl or {0}piss</code>
+• Penjelasan:  Coba sendiri.
+
+• Perintah:  <code>{0}penis or {0}hmm</code>
+• Penjelasan:  Coba sendiri.
+
+• Perintah: <code>{0}tembak or {0}bundir</code>
+• Penjelasan: Coba sendiri.
+
+• Perintah: <code>{0}heli or {0}y</code>
+• Penjelasan: Coba sendiri.
+
+• Perintah:  <code>{0}love or {0}awk</code>
+• Penjelasan:  Coba sendiri.
+
+• Perintah: <code>{0}wtf or {0}tank</code>
+• Penjelasan: Coba sendiri.
+
+• Perintah: <code>{0}kocok</code>
+• Penjelasan: Coba sendiri.
+"""

@@ -1,0 +1,53 @@
+{
+    "name": "Fandy Bejir",
+    "description": "Fandy Bejir Dibuat Untuk String Telethon Dan Pyrogram Untuk ID 5 Pasti Aman.",
+    "logo": "https://graph.org/file/2a6c05f8304bd6996e6b9.jpg",
+    "keywords": [
+        "Telethon",
+        "Pyrogram"
+    ],
+    "repository": "https://github.com/ubotfand/Fandy-Bejir",
+    "success_url": "https://t.me/rizzvbss",
+    "stack": "container",
+    "env": {
+        "API_ID": {
+            "description": "Au ya cek my.telegram.org",
+            "required": true
+        },
+        "API_HASH": {
+            "description": "Au ya cek my.telegram.org",
+            "required": true
+        },
+        "SESSION": {
+            "description": "Silakan isi Telethon Atau Pyrogram V2",
+            "value": ""
+        },
+        "MONGO_URI": {
+            "description": "Silakan isi Mongo Db/Mongo Url . Cara ambil nya ketik #tutor di @kynansupport.",
+            "value": ""
+        },
+        "HEROKU_API": {
+            "description": "Isi Coy Jan Dikosongin.",
+            "required": true
+        },
+        "HEROKU_APP_NAME": {
+            "description": "Isi Coy Jan Dikosongin",
+            "value": "",
+            "required": true
+        }
+    },
+  "buildpacks": [
+    {
+      "url": "heroku/python"
+    },
+    {
+      "url": "https://github.com/jonathanong/heroku-buildpack-ffmpeg-latest.git"
+    }
+  ],
+    "formation": {
+        "worker": {
+            "quantity": 1,
+            "size": "basic"
+        }
+    }
+}

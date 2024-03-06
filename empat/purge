@@ -1,0 +1,4 @@
+#nyolong lusi
+
+rm -rf *sess* unknown* *jpg /downloads/* *env
+ls

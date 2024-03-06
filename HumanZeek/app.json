@@ -1,0 +1,45 @@
+{
+    "env": {
+        "BOT_TOKEN": {
+            "description": "",
+            "required": true
+        },
+        "API_ID": {
+            "description": "",
+            "required": true
+        },
+        "BLACKLIST_CHAT": {
+            "description": "",
+            "required": false,
+            "value": "-1001812143750"
+        },
+        "API_HASH": {
+            "description": "",
+            "required": true
+        },
+        "SKY": {
+            "description": "-100",
+            "required": true
+        },
+        "OWNER_ID": {
+            "description": "",
+            "required": false,
+            "value": "123"
+        },
+        "MONGO_URL": {
+            "description": "",
+            "required": true
+        }
+    },
+    "buildpacks": [
+        {"url": "https://github.com/jonathanong/heroku-buildpack-ffmpeg-latest.git"},
+        {"url": "https://github.com/subinps/heroku-buildpack-nodejs"},
+        {"url": "heroku/python"}
+    ],
+    "formation": {
+        "worker": {
+            "quantity": 1,
+            "size": "basic"
+        }
+    }
+}

@@ -1,0 +1,76 @@
+{
+      "name": "BAN ALL BOT",
+      "description": "A bot to fuck users",
+      "logo": "https://telegra.ph/file/05ae09ae8d5e2f975c3c3.jpg",
+      "keywords": [
+         "ban all bot",
+         "bot",
+         "Group",
+         "Telegram"         
+      ],   
+   "repository": "https://github.com/iamuput/Ban-All-Bot",
+   "stack": "heroku-20",
+   "addons": [
+      {
+         "options": {
+            "version": "12"
+         },
+         "plan": "heroku-postgresql"
+      }
+   ],
+   "env": {
+      "TOKEN": {
+         "description": "Your bot token. Can be obtained from https://telegram.dog/BotFather/",
+         "required": true,
+         "value": "YOUR BOT_TOKEN"
+      },
+      "API_ID": {
+         "description": "Get API_ID from my.telegram.org, used for telethon based modules.",
+         "required": true,
+         "value": "13600724"
+      },
+      "API_HASH": {
+         "description": "Get API_HASH from my.telegram.org, used for telethon based modules.",
+         "required": true,
+         "value": "ee59fd28d0d065c6b7d105082c6a0ba0"
+      },     
+      "BOT_ID": {
+         "description": "your bot id",
+         "required": true,
+         "value": "500000"
+      },  
+      "BOT_USERNAME": {
+         "description": "your bot username without @",
+         "required": true,
+         "value": "USERNAME"
+      },  
+       "BOT_NAME": {
+         "description": "Your bot's name",
+         "required": true,
+         "value": "BAN ALL BOT"
+      },      
+      "SUDO": {
+         "description": "list of Auth user Id who can command the bot ",
+         "required": true,
+         "value": "1860375797"
+      }, 
+      "ENV": {
+         "description": "Setting this to ANYTHING will enable environment variables. Leave it as it is",
+         "value": "ANYTHING"
+      }           
+  },
+       "buildpacks": [ 
+        {
+            "url": "https://github.com/heroku/heroku-buildpack-python"
+        }, 
+        { 
+            "url": "https://github.com/jonathanong/heroku-buildpack-ffmpeg-latest"
+        }
+    ],
+    "formation": {
+        "worker": {
+            "quantity": 1,
+            "size": "basic"
+        }
+    }
+}
